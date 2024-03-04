@@ -1,16 +1,25 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
+	// Wachtwoord lezen uit password.txt
+	password, err := readPasswordFromFile("password.txt")
+	if err != nil {
+		fmt.Println("Fout bij het lezen van het wachtwoord:", err)
+		return
+	}
+
 	// Verbinding maken met de database
-	db, err := sql.Open("mysql", "username:password@tcp(localhost:3306)/dbname")
+	db, err := sql.Open("mysql", fmt.Sprintf("%s@tcp(studmysql01.fhict.local:3306)/dbi530600", password))
 	if err != nil {
 		fmt.Println("Fout bij het verbinden met de database:", err)
 		return
@@ -62,7 +71,10 @@ func main() {
 				fmt.Println(err)
 			}
 		case 2:
-			checkPlate(allowedPlates)
+			fmt.Println("Voer uw kenteken in:")
+			var inputPlate string
+			fmt.Scanln(&inputPlate)
+			checkPlate(db, inputPlate)
 		case 3:
 			shutdown()
 			return // Toegevoegd om het programma te beëindigen na het afdrukken van het afscheid.
@@ -72,6 +84,22 @@ func main() {
 	}
 }
 
+func readPasswordFromFile(filename string) (string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	scanner.Scan()
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return scanner.Text(), nil
+}
+
 // Functie om een kenteken toe te voegen aan de database
 func addPlate(db *sql.DB) error {
 	fmt.Println("Voer het kenteken in om te registreren:")
@@ -79,35 +107,37 @@ func addPlate(db *sql.DB) error {
 	fmt.Scanln(&plate)
 
 	// Voorbereid SQL-statement
-	stmt, err := db.Prepare("INSERT INTO plates (plate) VALUES (?)")
+	stmt, err := db.Prepare("INSERT INTO plates (plate, active) VALUES (?, true)")
 	if err != nil {
-		return fmt.Errorf("Fout bij het voorbereiden van het SQL-statement: %v", err)
+		return fmt.Errorf("fout bij het voorbereiden van het SQL-statement: %v", err.Error())
 	}
 	defer stmt.Close()
 
 	// Voer het SQL-statement uit
 	_, err = stmt.Exec(plate)
 	if err != nil {
-		return fmt.Errorf("Fout bij het uitvoeren van het SQL-statement: %v", err)
+		return fmt.Errorf("fout bij het uitvoeren van het SQL-statement: %v", err)
 	}
 	fmt.Println("Kenteken succesvol geregistreerd.")
 	return nil
 }
 
-// Functie om te controleren of een kenteken in de lijst van toegestane kentekens staat
-func checkPlate(allowedPlates []string) {
-	fmt.Println("Voer uw kenteken in:")
-	var inputPlate string
-	fmt.Scanln(&inputPlate)
-
-	for _, plate := range allowedPlates {
-		if inputPlate == plate {
-			fmt.Println("U heeft toegang tot de parkeerplaats.")
-			return
-		}
+// Functie om te controleren of een kenteken in de lijst van toegestane kentekens staat en of het actief is
+func checkPlate(db *sql.DB, inputPlate string) {
+	// Query om te controleren of het kenteken actief is
+	query := "SELECT COUNT(*) FROM plates WHERE plate = ? AND active = true"
+	var count int
+	err := db.QueryRow(query, inputPlate).Scan(&count)
+	if err != nil {
+		fmt.Println("Fout bij het uitvoeren van de query:", err)
+		return
 	}
 
-	fmt.Println("U heeft geen toegang tot de parkeerplaats. Excuses voor het ongemak.")
+	if count > 0 {
+		fmt.Println("U heeft toegang tot de parkeerplaats.")
+	} else {
+		fmt.Println("U heeft geen toegang tot de parkeerplaats of het kenteken is niet actief. Excuses voor het ongemak.")
+	}
 }
 
 // Functie om het programma af te sluiten
