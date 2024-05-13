@@ -1,0 +1,77 @@
+/* Chat container */
+.container {
+
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    background-image: url('img.JPG'); /* Voeg hier het pad naar je achtergrondafbeelding toe */
+    background-size: cover;
+    background-position: center;
+}
+
+h2 {
+    font-family: Arial, sans-serif;
+    color: #ffffff;
+}
+
+/* Chat messages */
+.chat-message {
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px 0;
+    font-family: Arial, sans-serif;
+    color: #000000;
+}
+
+/* User's message */
+.user-message {
+    align-self: flex-end;
+    background-color: #63cdda;
+    color: #fff;
+}
+
+/* Bot's message */
+.bot-message {
+    align-self: flex-start;
+    background-color: #ffd32a;
+    color: #333;
+}
+
+/* Input area */
+.input-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f2f2f2;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Input field */
+.input-field {
+    flex: 1;
+    padding: 8px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Send button */
+.send-button {
+    padding: 8px 15px;
+    background-color: #63cdda;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.send-button:hover {
+    background-color: #52b5b5;
+}
